@@ -1,10 +1,11 @@
 """
-Script de création des données de démonstration pour HotelBookCI.
+Script de création des données de démonstration pour HotelBookCI (version Sénégal - RIU Baobab, 3 offres).
 Lance avec: python manage.py shell < create_demo_data.py
 OU: python create_demo_data.py (depuis le dossier backend)
 """
 import os
 import sys
+# pyrefly: ignore [missing-import]
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hotelbookci.settings')
@@ -12,85 +13,78 @@ os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 django.setup()
 
+# pyrefly: ignore [missing-import]
 from django.contrib.auth import get_user_model
 from apps.rooms.models import RoomCategory, Room, SeasonalRate
 import datetime
 
 User = get_user_model()
 
-print("=== Creation des donnees de demonstration HotelBookCI ===")
-
+print("=== Creation des donnees de demonstration (Senegal - RIU Baobab - 3 categories) ===")
 
 # ---- Superuser Admin ----
 if not User.objects.filter(username='admin').exists():
     admin = User.objects.create_superuser(
         username='admin',
-        email='admin@hotelbookci.com',
+        email='abdoulaye.ndiaye@hotelbookci.sn',
         password='Admin1234!',
-        first_name='Administrateur',
-        last_name='Système',
+        first_name='Abdoulaye',
+        last_name='Ndiaye',
         role='admin',
         is_staff=True,
     )
-    print(f"✅ Admin créé: admin / Admin1234!")
+    print("Admin cree: admin / Admin1234! (Abdoulaye Ndiaye)")
 else:
-    print("ℹ️  Admin existe déjà")
+    print("Admin existe deja")
 
 # ---- Réceptionniste ----
 if not User.objects.filter(username='receptionniste').exists():
     recept = User.objects.create_user(
         username='receptionniste',
-        email='recept@hotelbookci.com',
+        email='fatou.diop@hotelbookci.sn',
         password='Recept1234!',
-        first_name='Marie',
-        last_name='Dupont',
+        first_name='Fatou',
+        last_name='Diop',
         role='receptionist',
-        phone='+225 07 00 00 00',
+        phone='+221 77 123 45 67',
     )
-    print(f"✅ Réceptionniste créé: receptionniste / Recept1234!")
+    print("Receptionniste cree: receptionniste / Recept1234! (Fatou Diop)")
 
 # ---- Client de test ----
 if not User.objects.filter(username='client1').exists():
     client = User.objects.create_user(
         username='client1',
-        email='client@hotelbookci.com',
+        email='moustapha.sow@yahoo.sn',
         password='Client1234!',
-        first_name='Kofi',
-        last_name='Mensah',
+        first_name='Moustapha',
+        last_name='Sow',
         role='client',
-        phone='+225 05 00 00 00',
+        phone='+221 76 987 65 43',
     )
-    print(f"✅ Client créé: client1 / Client1234!")
+    print("Client cree: client1 / Client1234! (Moustapha Sow)")
 
 # ---- Catégories de chambres ----
 categories_data = [
     {
-        'name': 'Standard',
-        'description': 'Chambre confortable avec tout le nécessaire pour un séjour agréable.',
+        'name': 'Chambre Double Standard',
+        'description': 'Chambre confortable avec balcon ou terrasse, parfaite pour un sejour detendu a Pointe Sarene.',
         'max_occupancy': 2,
-        'base_price': 35000,
-        'amenities': ['WiFi', 'Climatisation', 'TV', 'Salle de bain privée'],
+        'base_price': 55000,
+        'amenities': ['WiFi Gratuit', 'Climatisation', 'Mini-bar', 'TV Satellite', 'Coffre-fort'],
     },
     {
-        'name': 'Deluxe',
-        'description': 'Chambre spacieuse avec vue sur le jardin et équipements premium.',
+        'name': 'Double Standard Vue Mer',
+        'description': 'Offrez-vous une vue imprenable sur l ocean Atlantique depuis votre balcon prive.',
+        'max_occupancy': 2,
+        'base_price': 75000,
+        'amenities': ['WiFi Premium', 'Climatisation', 'Mini-bar', 'TV 55"', 'Vue sur Ocean', 'Machine a cafe'],
+    },
+    {
+        'name': 'Suite Swim-Up Vue Mer',
+        'description': 'Le summum de l exclusivite. Acces direct a la piscine privee et vue panoramique spectaculaire sur la plage.',
         'max_occupancy': 3,
-        'base_price': 65000,
-        'amenities': ['WiFi Haut Débit', 'Climatisation', 'TV 55"', 'Minibar', 'Coffre-fort'],
-    },
-    {
-        'name': 'Suite Junior',
-        'description': 'Suite avec salon séparé, parfaite pour les voyages d\'affaires.',
-        'max_occupancy': 4,
-        'base_price': 120000,
-        'amenities': ['WiFi Haut Débit', 'Climatisation', 'TV 65"', 'Minibar', 'Baignoire', 'Salon'],
-    },
-    {
-        'name': 'Suite Présidentielle',
-        'description': 'Le summum du luxe. Vue panoramique, jacuzzi, butler 24h/24.',
-        'max_occupancy': 4,
-        'base_price': 250000,
-        'amenities': ['WiFi Premium', 'Climatisation Multi-zones', 'Home Cinéma', 'Jacuzzi', 'Butler', 'Terrasse Privée'],
+        'base_price': 280000,
+        'amenities': ['Piscine Privee Connectee', 'WiFi Premium', 'Climatisation', 'Salon Separe', 'Baignoire Hydromassage', 'Service Premium'],
     },
 ]
 
@@ -102,23 +96,22 @@ for data in categories_data:
     )
     categories[data['name']] = cat
     if created:
-        print(f"✅ Catégorie créée: {cat.name}")
+        print(f"Categorie creee: {cat.name}")
 
 # ---- Chambres ----
 rooms_data = [
-    # Standard (étage 1)
-    {'number': '101', 'floor': 1, 'category': 'Standard'},
-    {'number': '102', 'floor': 1, 'category': 'Standard'},
-    {'number': '103', 'floor': 1, 'category': 'Standard'},
-    # Deluxe (étage 2)
-    {'number': '201', 'floor': 2, 'category': 'Deluxe'},
-    {'number': '202', 'floor': 2, 'category': 'Deluxe'},
-    {'number': '203', 'floor': 2, 'category': 'Deluxe'},
-    # Suite Junior (étage 3)
-    {'number': '301', 'floor': 3, 'category': 'Suite Junior'},
-    {'number': '302', 'floor': 3, 'category': 'Suite Junior'},
-    # Suite Présidentielle (étage 4)
-    {'number': 'PH1', 'floor': 4, 'category': 'Suite Présidentielle'},
+    # Double Standard (étage 1)
+    {'number': '101', 'floor': 1, 'category': 'Chambre Double Standard'},
+    {'number': '102', 'floor': 1, 'category': 'Chambre Double Standard'},
+    {'number': '103', 'floor': 1, 'category': 'Chambre Double Standard'},
+    # Double Standard Vue Mer (étage 2)
+    {'number': '201', 'floor': 2, 'category': 'Double Standard Vue Mer'},
+    {'number': '202', 'floor': 2, 'category': 'Double Standard Vue Mer'},
+    {'number': '203', 'floor': 2, 'category': 'Double Standard Vue Mer'},
+    # Suite Swim-Up Vue Mer (étage 3)
+    {'number': '301', 'floor': 3, 'category': 'Suite Swim-Up Vue Mer'},
+    {'number': '302', 'floor': 3, 'category': 'Suite Swim-Up Vue Mer'},
+    {'number': 'SU1', 'floor': 4, 'category': 'Suite Swim-Up Vue Mer'},
 ]
 
 for data in rooms_data:
@@ -130,37 +123,30 @@ for data in rooms_data:
         },
     )
     if created:
-        print(f"✅ Chambre créée: {room.number} ({data['category']})")
+        print(f"Chambre creee: {room.number} ({data['category']})")
 
 # ---- Tarifs saisonniers ----
 rates_data = [
     {
-        'category': 'Standard',
-        'name': 'Haute Saison (Été)',
+        'category': 'Chambre Double Standard',
+        'name': 'Haute Saison (Hivernage)',
         'start_date': datetime.date(2025, 7, 1),
         'end_date': datetime.date(2025, 8, 31),
-        'price_per_night': 45000,
+        'price_per_night': 65000,
     },
     {
-        'category': 'Deluxe',
-        'name': 'Haute Saison (Été)',
+        'category': 'Double Standard Vue Mer',
+        'name': 'Haute Saison (Hivernage)',
         'start_date': datetime.date(2025, 7, 1),
         'end_date': datetime.date(2025, 8, 31),
-        'price_per_night': 85000,
+        'price_per_night': 90000,
     },
     {
-        'category': 'Suite Junior',
-        'name': 'Noël & Nouvel An',
+        'category': 'Suite Swim-Up Vue Mer',
+        'name': 'Saison des Fetes (Fin d Annee)',
         'start_date': datetime.date(2025, 12, 20),
         'end_date': datetime.date(2026, 1, 5),
-        'price_per_night': 180000,
-    },
-    {
-        'category': 'Suite Présidentielle',
-        'name': 'Noël & Nouvel An',
-        'start_date': datetime.date(2025, 12, 20),
-        'end_date': datetime.date(2026, 1, 5),
-        'price_per_night': 380000,
+        'price_per_night': 350000,
     },
 ]
 
@@ -172,15 +158,13 @@ for data in rates_data:
         defaults={**data},
     )
     if created:
-        print(f"✅ Tarif créé: {rate.name} - {cat.name}")
+        print(f"Tarif cree: {rate.name} - {cat.name}")
 
 print("\n" + "="*50)
-print("🎉 Données de démonstration créées !")
+print("Donnees de demonstration Senegaleses creees !")
 print("="*50)
 print("Comptes disponibles:")
-print("  admin         / Admin1234!   (Administrateur)")
-print("  receptionniste / Recept1234! (Réceptionniste)")
-print("  client1       / Client1234!  (Client)")
+print("  admin         / Admin1234!   (Abdoulaye Ndiaye)")
+print("  receptionniste / Recept1234! (Fatou Diop)")
+print("  client1       / Client1234!  (Moustapha Sow)")
 print("="*50)
-print("Swagger UI: http://127.0.0.1:8000/api/schema/swagger-ui/")
-print("Admin Django: http://127.0.0.1:8000/admin/")
