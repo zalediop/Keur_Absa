@@ -135,10 +135,12 @@ class Payment(models.Model):
         REFUNDED = 'refunded', 'Remboursé'
 
     class Method(models.TextChoices):
-        CARD = 'card', 'Carte bancaire'
-        CASH = 'cash', 'Espèces'
-        TRANSFER = 'transfer', 'Virement bancaire'
-        MOBILE = 'mobile', 'Mobile Money'
+        WAVE          = 'wave',          'Wave'
+        ORANGE_MONEY  = 'orange_money',  'Orange Money'
+        FREE_MONEY    = 'free_money',    'Free Money'
+        CARD          = 'card',          'Carte bancaire'
+        CASH          = 'cash',          'Espèces'
+        TRANSFER      = 'transfer',      'Virement bancaire'
 
     reservation = models.OneToOneField(
         Reservation,

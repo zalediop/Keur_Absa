@@ -12,10 +12,13 @@ Endpoints:
   GET    /api/payments/                        → Liste paiements (filtré par rôle)
   POST   /api/payments/                        → Créer paiement (client)
   GET    /api/payments/{id}/                   → Détail paiement
+  GET    /api/stats/                           → Statistiques globales (staff/admin)
 """
 from django.utils import timezone
+from django.utils.timezone import now
+from django.db.models import Count, Sum, Q
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiResponse
@@ -29,6 +32,61 @@ from .serializers import (
     CheckInSerializer,
 )
 from apps.accounts.permissions import IsAdminRole, IsReceptionistOrAdmin, IsOwnerOrStaff
+from apps.rooms.models import Room
+
+
+@extend_schema(tags=['reservations'], summary='Statistiques globales du tableau de bord')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard_stats(request):
+    """
+    Retourne les statistiques globales pour les dashboards Admin et Réception.
+    Utilise des agrégations SQL pour éviter de charger toutes les lignes en mémoire.
+    """
+    user = request.user
+    today = timezone.localdate()
+
+    # --- Statistiques réservations ---
+    if user.role == 'client':
+        res_qs = Reservation.objects.filter(client=user)
+    else:
+        res_qs = Reservation.objects.all()
+
+    res_counts = res_qs.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='pending')),
+        confirmed=Count('id', filter=Q(status='confirmed')),
+        checked_in=Count('id', filter=Q(status='checked_in')),
+        checked_out=Count('id', filter=Q(status='checked_out')),
+        cancelled=Count('id', filter=Q(status='cancelled')),
+        today_arrivals=Count('id', filter=Q(status='confirmed', check_in_date=today)),
+    )
+
+    # --- Revenus (réservations non annulées) ---
+    revenue_data = res_qs.exclude(status='cancelled').aggregate(
+        total_revenue=Sum('total_price')
+    )
+    total_revenue = revenue_data['total_revenue'] or 0
+
+    # --- Statistiques chambres (admin/réception uniquement) ---
+    room_stats = {}
+    if user.role in ['admin', 'receptionist']:
+        room_counts = Room.objects.filter(is_active=True).aggregate(
+            total=Count('id'),
+            available=Count('id', filter=Q(status='available')),
+            occupied=Count('id', filter=Q(status='occupied')),
+            maintenance=Count('id', filter=Q(status='maintenance')),
+            cleaning=Count('id', filter=Q(status='cleaning')),
+        )
+        room_stats = room_counts
+
+    return Response({
+        'reservations': res_counts,
+        'revenue': str(total_revenue),
+        'rooms': room_stats,
+        'today': str(today),
+    })
+
 
 
 @extend_schema(tags=['reservations'])
@@ -79,6 +137,11 @@ class ReservationViewSet(viewsets.ModelViewSet):
         if room_id:
             queryset = queryset.filter(room_id=room_id)
 
+        # Filtre par date exacte d'arrivée (pour les arrivées du jour)
+        check_in_date = self.request.query_params.get('check_in_date')
+        if check_in_date:
+            queryset = queryset.filter(check_in_date=check_in_date)
+
         return queryset.order_by('-created_at')
 
     def get_permissions(self):
@@ -95,7 +158,16 @@ class ReservationViewSet(viewsets.ModelViewSet):
                 {'error': 'Seuls les clients peuvent créer des réservations.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        return super().create(request, *args, **kwargs)
+        # Utiliser le serializer de création pour la validation
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reservation = serializer.save()
+        # Retourner la réservation complète (avec total_price, nights, etc.)
+        output_serializer = ReservationSerializer(
+            reservation,
+            context=self.get_serializer_context(),
+        )
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         """Modification complète interdite — utiliser les actions spécifiques."""

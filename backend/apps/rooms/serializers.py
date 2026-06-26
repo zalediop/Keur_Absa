@@ -28,24 +28,43 @@ class RoomCategorySerializer(serializers.ModelSerializer):
     """Sérialisation d'une catégorie de chambre avec ses tarifs saisonniers."""
     seasonal_rates = SeasonalRateSerializer(many=True, read_only=True)
     rooms_count = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = RoomCategory
         fields = [
             'id', 'name', 'description', 'max_occupancy',
-            'base_price', 'amenities', 'image', 'is_active',
+            'base_price', 'amenities', 'image', 'image_url', 'is_active',
             'rooms_count', 'seasonal_rates',
         ]
 
     def get_rooms_count(self, obj):
         return obj.rooms.filter(is_active=True).count()
 
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 
 class RoomCategoryLiteSerializer(serializers.ModelSerializer):
     """Version légère sans tarifs — pour les listes de chambres."""
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = RoomCategory
-        fields = ['id', 'name', 'base_price', 'max_occupancy', 'amenities', 'image']
+        fields = ['id', 'name', 'base_price', 'max_occupancy', 'amenities', 'image', 'image_url']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class RoomSerializer(serializers.ModelSerializer):
@@ -55,17 +74,26 @@ class RoomSerializer(serializers.ModelSerializer):
     """
     category_detail = RoomCategoryLiteSerializer(source='category', read_only=True)
     current_price = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
         fields = [
             'id', 'number', 'floor', 'category', 'category_detail',
-            'status', 'description', 'image', 'is_active',
+            'status', 'description', 'image', 'image_url', 'is_active',
             'current_price', 'created_at',
         ]
         extra_kwargs = {
             'category': {'write_only': True},
         }
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
     def get_current_price(self, obj):
         """Retourne le prix applicable à la date de check-in demandée (ou aujourd'hui)."""
@@ -88,14 +116,23 @@ class RoomAvailabilitySerializer(serializers.ModelSerializer):
     category_detail = RoomCategoryLiteSerializer(source='category', read_only=True)
     price_for_period = serializers.SerializerMethodField()
     nights = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Room
         fields = [
             'id', 'number', 'floor', 'category_detail',
-            'status', 'description', 'image',
+            'status', 'description', 'image', 'image_url',
             'price_for_period', 'nights',
         ]
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
     def get_price_for_period(self, obj):
         check_in = self.context.get('check_in')

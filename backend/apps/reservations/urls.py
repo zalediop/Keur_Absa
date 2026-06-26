@@ -8,4 +8,5 @@ router.register(r'payments', views.PaymentViewSet, basename='payment')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('stats/', views.dashboard_stats, name='dashboard-stats'),
 ]

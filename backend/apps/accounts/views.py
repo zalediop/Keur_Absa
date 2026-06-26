@@ -217,7 +217,17 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     Détail, modification et suppression d'un utilisateur — **Admin uniquement**.
 
     PATCH permet de modifier le rôle d'un utilisateur.
+    La suppression de son propre compte est interdite.
     """
     serializer_class = UserAdminSerializer
     permission_classes = [IsAuthenticated, IsAdminRole]
     queryset = User.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance == request.user:
+            return Response(
+                {'error': 'Impossible de supprimer votre propre compte administrateur.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().destroy(request, *args, **kwargs)
