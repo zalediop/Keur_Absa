@@ -14,13 +14,21 @@ Endpoints:
   GET    /api/payments/{id}/                   → Détail paiement
   GET    /api/stats/                           → Statistiques globales (staff/admin)
 """
+# pyrefly: ignore [missing-import]
 from django.utils import timezone
+# pyrefly: ignore [missing-import]
 from django.utils.timezone import now
+# pyrefly: ignore [missing-import]
 from django.db.models import Count, Sum, Q
+# pyrefly: ignore [missing-import]
 from rest_framework import viewsets, status
+# pyrefly: ignore [missing-import]
 from rest_framework.decorators import action, api_view, permission_classes
+# pyrefly: ignore [missing-import]
 from rest_framework.permissions import IsAuthenticated
+# pyrefly: ignore [missing-import]
 from rest_framework.response import Response
+# pyrefly: ignore [missing-import, parse-error]
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import Reservation, Payment, CheckIn
@@ -31,7 +39,9 @@ from .serializers import (
     PaymentCreateSerializer,
     CheckInSerializer,
 )
+# pyrefly: ignore [missing-import]
 from apps.accounts.permissions import IsAdminRole, IsReceptionistOrAdmin, IsOwnerOrStaff
+# pyrefly: ignore [missing-import]
 from apps.rooms.models import Room
 
 

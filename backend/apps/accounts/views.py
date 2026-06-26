@@ -13,12 +13,19 @@ Endpoints:
   GET    /api/auth/users/{id}/       → Détail utilisateur (admin)
   PATCH  /api/auth/users/{id}/       → Modifier rôle (admin)
 """
+# pyrefly: ignore [missing-import]
 from rest_framework import generics, status
+# pyrefly: ignore [missing-import]
 from rest_framework.response import Response
+# pyrefly: ignore [missing-import]
 from rest_framework.views import APIView
+# pyrefly: ignore [missing-import]
 from rest_framework.permissions import AllowAny, IsAuthenticated
+# pyrefly: ignore [missing-import]
 from rest_framework_simplejwt.tokens import RefreshToken
+# pyrefly: ignore [missing-import]
 from rest_framework_simplejwt.exceptions import TokenError
+# pyrefly: ignore [missing-import]
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 
 from .models import User
